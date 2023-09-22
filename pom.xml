@@ -10,6 +10,9 @@
         <version>2.5.5</version> <!-- Use the latest Spring Boot version -->
     </parent>
     <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
         <java.version>17</java.version> <!-- Use Java 17 -->
     </properties>
     <dependencies>
