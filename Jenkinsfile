@@ -1,61 +1,29 @@
 pipeline {
     agent any
 
-    environment {
-        // Define your Docker registry credentials
-        DOCKER_REGISTRY_CREDENTIALS = credentials('123')
-        // Define the Docker image name
-        DOCKER_IMAGE_NAME = "pierreag/spring"
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                // Checkout your source code from your version control system (e.g., Git)
-                checkout scm
+                // Checkout the code from GitHub
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/PierreAG/SimpleRestApi.git']]])
             }
         }
-
         stage('Build') {
             steps {
-                // Build your Spring Boot application with Maven
-                sh 'mvn clean package'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Build a Docker image with the Spring Boot JAR
-                    docker.build(DOCKER_IMAGE_NAME, "-f Dockerfile .")
+                // Set the JDK version to use
+                tools {
+                    jdk 'JDK_17' // This should match the JDK name defined in Jenkins
                 }
-            }
-        }
 
-        stage('Push Docker Image') {
-            steps {
-                // Push the Docker image to Docker Hub
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_REGISTRY_CREDENTIALS) {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                // Deploy your Spring Boot application (e.g., to a Kubernetes cluster)
-                // You can use kubectl, Helm, or other tools here
-                sh 'kubectl apply -f deployment.yaml'
+                // Build the project using Maven
+                sh 'mvn clean install'
             }
         }
     }
 
     post {
-        always {
-            // Cleanup: Remove the Docker image from the local Jenkins workspace
-            cleanWs()
+        success {
+            // Add post-build actions here if needed
         }
     }
 }
